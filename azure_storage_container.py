@@ -13,10 +13,10 @@ options:
       - name of the container
     required: true
     default: null
-  blob_public_access:
+  public_access:
     description:
-      - the type of container
-    required: true
+      - the type of access allowed
+    required: false
     default: null
   account_name:
     description:
@@ -81,7 +81,7 @@ def create_storage_container(module, azure):
         True if a new container was created, false otherwise
     """
     name = module.params.get('name')
-    blob_public_access = module.params.get('blob_public_access')
+    public_access = module.params.get('public_access')
 
     storage_container = None
     try:
@@ -93,8 +93,8 @@ def create_storage_container(module, azure):
 
     if not storage_container:
         changed = True
-        azure.create_container(container_name=name, x_ms_blob_public_access=blob_public_access)
-        storage_container = razure.get_container_properties(container_name=name)
+        azure.create_container(container_name=name, x_ms_blob_public_access=public_access)
+        storage_container = azure.get_container_properties(container_name=name)
     else:        
         changed = False
 
@@ -133,7 +133,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(required=True),
-            blob_public_access=dict(choices=['container', 'blob']),
+            public_access=dict(choices=['container', 'blob']),
             account_name=dict(required=True),
             account_key=dict(required=True),
             state=dict(default='present', choices=['present', 'absent'])

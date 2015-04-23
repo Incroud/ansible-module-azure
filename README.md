@@ -4,8 +4,13 @@ ansible-module-azure
 This repo contains an Azure module for Ansible. The core Ansible Azure module (from ansible-modules-core) was taken as the basis for this expanded set of functionality.
 
 Supported Azure resources include:
-* azure_vm (Virtual Machines)
-* azure_service (Cloud Services)
+* Management Certificates (azure_management_certificate)
+* Reserved IP addresses (azure_reserved_ip_address)
+* Cloud Services (azure_service)
+* Storage Accounts (azure_storage_account)
+* Storage Account Keys (azure_storage_account_keys)
+* Storage Containers (azure_storage_container)
+* Virtual Machines (azure_vm)
 
 Take care to submit tickets to the appropriate repo where modules are contained.  The docs.ansible.com website indicates this at the bottom of each module documentation page.
 

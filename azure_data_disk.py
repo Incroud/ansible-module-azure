@@ -48,7 +48,7 @@ options:
       - a label for the data disk (up to 100 characters)
     required: true
     default: null
-  size:
+  size_gb:
     description:
       - the size of the disk (in Gb)
     required: true
@@ -72,7 +72,7 @@ options:
     description:
       - wait for the service to be created before returning
     required: false
-    default: "no"
+    default: "yes"
     choices: [ "yes", "no" ]
     aliases: []
   wait_timeout:
@@ -168,20 +168,27 @@ def create_data_disk(module, azure):
     media_link = module.params.get('media_link')
     label = module.params.get('label')
     name = module.params.get('name')
-    size = module.params.get('size')
+    size_gb = int(module.params.get('size_gb'))
     source_media_link = module.params.get('source_media_link')
     wait = module.boolean(module.params.get('wait'))
     wait_timeout = int(module.params.get('wait_timeout'))
 
-    # Check if a deployment with the same name already exists
-    data_disk = azure.get_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun)
+    # Check if a data disk is already attached to the deployment
+    data_disk = None
+    try:
+        data_disk = azure.get_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun)
+    except WindowsAzureMissingResourceError as e:
+        pass  # no such service
+    except WindowsAzureError as e:
+        module.fail_json(msg="failed to find the data disk, error was: %s" % str(e))
+
     if data_disk:
         changed = False
     else:
         changed = True
         # Create the data disk if necessary
         try:
-            result = azure.add_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun, host_caching=host_caching, media_link=media_link, disk_label=label, disk_name=name, logic_disk_size_in_gb=size, source_media_link=source_media_link)
+            result = azure.add_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun, host_caching=host_caching, media_link=media_link, disk_label=label, disk_name=name, logical_disk_size_in_gb=size_gb, source_media_link=source_media_link)
             if (wait):
                 _wait_for_completion(azure, result, wait_timeout, "add_data_disk")
         except WindowsAzureError as e:
@@ -265,12 +272,12 @@ def main():
             media_link=dict(),
             label=dict(),
             name=dict(),
-            size=dict(),
+            size_gb=dict(),
             source_media_link=dict(),
             subscription_id=dict(no_log=True),
             management_cert_path=dict(),
             state=dict(default='present', choices=['present', 'absent']),
-            wait=dict(type='bool', default=False),
+            wait=dict(type='bool', default=True),
             wait_timeout=dict(default=600),
             wait_timeout_redirects=dict(default=300)
         )

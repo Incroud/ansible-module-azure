@@ -4,7 +4,7 @@
 
 DOCUMENTATION = '''
 ---
-module: azure_vm
+module: azure
 short_description: create or terminate a virtual machine in azure
 description:
      - Creates or terminates azure instances. When created optionally waits for it to be 'running'. This module has a dependency on python-azure >= 0.7.1
@@ -73,6 +73,11 @@ options:
   hostname:
     description:
       - hostname to write /etc/hostname. Defaults to <name>.cloudapp.net.
+    required: false
+    default: null
+  reserved_ip_name:
+    description:
+      - the name of a reserved ip address that will be assigned to the new machine
     required: false
     default: null
   wait:
@@ -243,22 +248,33 @@ def create_virtual_machine(module, azure):
     storage_account = module.params.get('storage_account')
     image = module.params.get('image')
     virtual_network_name = module.params.get('virtual_network_name')
+    reserved_ip_name = module.params.get('reserved_ip_name')
     wait = module.boolean(module.params.get('wait'))
     wait_timeout = int(module.params.get('wait_timeout'))
 
-    # Check if a deployment with the same name already exists
+    # Check if a cloud service with the same name already exists
     cloud_service_name_available = azure.check_hosted_service_name_availability(name)
+    deployment = None
     if not cloud_service_name_available.result:
-        changed = False
+        # Check if a deployment with the same name already exists
+        try:
+            deployment = azure.get_deployment_by_name(service_name=name, deployment_name=name)
+            changed = False
+        except WindowsAzureMissingResourceError as e:
+            pass
+        except WindowsAzureError as e:
+            module.fail_json(msg="failed to get deployment: %s" % str(e))
+
     else:
-        changed = True
         # Create cloud service if necessary
         try:
             result = azure.create_hosted_service(service_name=name, label=name, location=location)
             _wait_for_completion(azure, result, wait_timeout, "create_hosted_service")
         except WindowsAzureError as e:
-            module.fail_json(msg="failed to create the new service name, it already exists: %s" % str(e))
+            module.fail_json(msg="failed to create the new service name: %s" % str(e))
 
+    if not deployment:
+        changed = True
         # Create linux configuration
         disable_ssh_password_authentication = not password
         linux_config = LinuxConfigurationSet(hostname, user, password, disable_ssh_password_authentication)
@@ -308,14 +324,15 @@ def create_virtual_machine(module, azure):
                                                              os_virtual_hard_disk=os_hd,
                                                              role_size=role_size,
                                                              role_type='PersistentVMRole',
-                                                             virtual_network_name=virtual_network_name)
+                                                             virtual_network_name=virtual_network_name,
+                                                             reserved_ip_name=reserved_ip_name)
             _wait_for_completion(azure, result, wait_timeout, "create_virtual_machine_deployment")
+            deployment = azure.get_deployment_by_name(service_name=name, deployment_name=name)
         except WindowsAzureError as e:
             module.fail_json(msg="failed to create the new virtual machine, error was: %s" % str(e))
 
 
     try:
-        deployment = azure.get_deployment_by_name(service_name=name, deployment_name=name)
         return (changed, urlparse(deployment.url).hostname, deployment)
     except WindowsAzureError as e:
         module.fail_json(msg="failed to lookup the deployment information for %s, error was: %s" % (name, str(e)))
@@ -412,6 +429,7 @@ def main():
             password=dict(),
             image=dict(),
             virtual_network_name=dict(default=None),
+            reserved_ip_name=dict(default=None),
             state=dict(default='present', choices=['present', 'absent']),
             wait=dict(type='bool', default=False),
             wait_timeout=dict(default=600),
@@ -440,12 +458,12 @@ def main():
             module.fail_json(msg='image parameter is required for new instance')
         if not module.params.get('user'):
             module.fail_json(msg='user parameter is required for new instance')
+        if not module.params.get('password') and not module.params.get('ssh_cert_path'):
+            module.fail_json(msg='password or ssh_cert_path is required for new instance')
         if not module.params.get('location'):
             module.fail_json(msg='location parameter is required for new instance')
         if not module.params.get('storage_account'):
             module.fail_json(msg='storage_account parameter is required for new instance')
-        if not module.params.get('password'):
-            module.fail_json(msg='password parameter is required for new instance')
         (changed, public_dns_name, deployment) = create_virtual_machine(module, azure)
 
     module.exit_json(changed=changed, public_dns_name=public_dns_name, deployment=json.loads(json.dumps(deployment, default=lambda o: o.__dict__)))

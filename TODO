@@ -1,0 +1,172 @@
+Using https://github.com/Azure/azure-sdk-for-python/ as a reference:
+
+Service Management Service
+==========================
+
+Subscriptions/Management Certificates
+get_management_certificate - n/a
+get_subscription - n/a
+*add_management_certificate
+*delete_management_certificate
+
+Data Disks (azure_data_disk - currently on a feature branch)
+get_data_disk - Not tested
+add_data_disk - Not tested
+delete_data_disk - Not tested
+*update_data_disk
+
+Disks
+*get_disk
+*add_disk
+*delete_disk
+*update_disk
+
+DNS Servers
+*add_dns_server
+*delete_dns_server
+*update_dns_server
+
+OS Images
+*add_os_image
+*delete_os_image
+*get_os_image
+*update_os_image
+
+Roles
+*get_role
+*add_role
+*delete_role
+*capture_role
+*restart_role
+*start_role
+*shutdown_role
+*start_roles
+*shutdown_roles
+*update_role
+
+Cloud Services
+check_hosted_service_name_availability
+get_hosted_service_properties
+create_hosted_service - Done
+delete_hosted_service - Done
+*update_hosted_service
+
+Virtual Networks
+* Currently, there is not support in the Azure Python SDK for virtual networks
+* See https://github.com/Azure/azure-sdk-for-python/issues/155
+
+Affinity Groups
+*get_affinity_group_properties
+*create_affinity_group
+*delete_affinity_group
+*update_affinity_group
+
+Storage Accounts (azure_storage_account)
+*get_storage_account_keys
+*get_storage_account_properties
+check_storage_account_name_availability - Done
+create_storage_account - Done
+delete_storage_account - Done
+*regenerate_storage_account_keys
+*update_storage_account
+
+Virtual Machines Deployments
+*create_virtual_machine_deployment
+*get_deployment_by_name
+*get_deployment_by_slot
+*change_deployment_configuration
+*create_deployment
+*delete_deployment
+*rollback_update_or_upgrade
+*swap_deployment
+*update_deployment_status
+*upgrade_deployment
+*walk_upgrade_domain
+
+Service Certificates
+*get_service_certificate
+*add_service_certificate
+*delete_service_certificate
+
+Reserved IP Addresses
+get_reserved_ip_address - Done
+create_reserved_ip_address - Done
+delete_reserved_ip_address - Done
+
+Virtual Machine Images
+*capture_vm_image
+*create_vm_image
+*delete_vm_image
+*update_vm_image
+
+Role Instances
+*reboot_role_instance
+*rebuild_role_instance
+*reimage_role_instance
+*delete_role_instances
+
+Not Needed
+list_affinity_groups
+list_disks
+list_hosted_services
+list_locations
+list_management_certificates
+list_operating_system_families
+list_operating_systems
+list_os_images
+list_reserved_ip_addresses
+list_resource_extensions
+list_resource_extension_versions
+list_role_sizes
+list_service_certificates
+list_storage_accounts
+list_subscription_operations
+list_subscriptions
+list_virtual_network_sites
+list_vm_images
+
+Blob Service
+============
+Storage Containers (azure_storage_container)
+    get_container_properties - Done
+    create_container - Partial (TODO: meta name/values)
+    delete_container - Done
+    *get_container_metadata
+    *set_container_metadata
+    get_container_acl
+    set_container_acl
+    lease_container
+
+make_blob_url
+list_containers
+get_container_metadata
+list_blobs
+set_blob_service_properties
+get_blob_service_properties
+get_blob_properties
+set_blob_properties
+put_blob
+put_block_blob_from_path
+put_block_blob_from_file
+put_block_blob_from_bytes
+put_block_blob_from_text
+put_page_blob_from_path
+put_page_blob_from_file
+put_page_blob_from_bytes
+get_blob
+get_blob_to_path
+get_blob_to_file
+get_blob_to_bytes
+get_blob_to_text
+get_blob_metadata
+set_blob_metadata
+lease_blob
+snapshot_blob
+copy_blob
+abort_copy_blob
+delete_blob
+put_block
+put_block_list
+get_block_list
+put_page
+get_page_ranges

@@ -9,10 +9,10 @@ get_subscription - n/a
 *add_management_certificate
 *delete_management_certificate
 
-Data Disks (azure_data_disk - currently on a feature branch)
-get_data_disk - Not tested
-add_data_disk - Not tested
-delete_data_disk - Not tested
+Data Disks (azure_data_disk)
+get_data_disk - Done
+add_data_disk - Done
+delete_data_disk - Done
 *update_data_disk
 
 Disks

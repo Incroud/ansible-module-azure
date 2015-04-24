@@ -313,7 +313,7 @@ def create_virtual_machine(module, azure):
                                                                                 local_port=port))
 
         # First determine where to store disk
-        today = datetime.date.today().strftime('%Y-%m-%d-%H%M%S')
+        today = datetime.datetime.today().strftime('%Y-%m-%d-%H%M%S')
         disk_prefix = u'%s-%s' % (name, name)
         media_link = u'http://%s.blob.core.windows.net/vhds/%s-%s.vhd' % (storage_account, disk_prefix, today)
         # Create system hard disk

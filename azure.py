@@ -205,6 +205,10 @@ def _wait_for_completion(azure, promise, wait_timeout, msg):
         time.sleep(5)
         if operation_result.status == "Succeeded":
             return
+        elif operation_result.status == "InProgress":
+            continue
+        else:
+            raise WindowsAzureError('Failed to wait for async operation ' + msg + ': [' + operation_result.error.code + '] ' + operation_result.error.message)
 
     raise WindowsAzureError('Timed out waiting for async operation ' + msg + ' "' + str(promise.request_id) + '" to complete.')
 
@@ -283,8 +287,11 @@ def create_virtual_machine(module, azure):
         if ssh_cert_path:
             fingerprint, pkcs12_base64 = get_ssh_certificate_tokens(module, ssh_cert_path)
             # Add certificate to cloud service
-            result = azure.add_service_certificate(name, pkcs12_base64, 'pfx', '')
-            _wait_for_completion(azure, result, wait_timeout, "add_service_certificate")
+            try:
+                result = azure.add_service_certificate(name, pkcs12_base64, 'pfx', '')
+                _wait_for_completion(azure, result, wait_timeout, "add_service_certificate")
+            except WindowsAzureError as e:
+                module.fail_json(msg="failed to add service certificate: %s" % str(e))
 
             # Create ssh config
             ssh_config = SSH()

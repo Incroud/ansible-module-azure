@@ -147,6 +147,10 @@ def _wait_for_completion(azure, promise, wait_timeout, msg):
         time.sleep(5)
         if operation_result.status == "Succeeded":
             return
+        elif operation_result.status == "InProgress":
+            continue
+        else:
+            raise WindowsAzureError('Failed to wait for async operation ' + msg + ': [' + operation_result.error.code + '] ' + operation_result.error.message)
 
     raise WindowsAzureError('Timed out waiting for async operation ' + msg + ' "' + str(promise.request_id) + '" to complete.')
 

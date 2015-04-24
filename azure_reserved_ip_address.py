@@ -37,7 +37,7 @@ options:
     description:
       - wait for the service to be created before returning
     required: false
-    default: "no"
+    default: "yes"
     choices: [ "yes", "no" ]
     aliases: []
   wait_timeout:
@@ -233,7 +233,7 @@ def main():
             subscription_id=dict(no_log=True),
             management_cert_path=dict(),
             state=dict(default='present', choices=['present', 'absent']),
-            wait=dict(type='bool', default=False),
+            wait=dict(type='bool', default=True),
             wait_timeout=dict(default=600),
             wait_timeout_redirects=dict(default=300)
         )

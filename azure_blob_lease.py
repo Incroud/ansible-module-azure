@@ -143,7 +143,7 @@ def release_blob_lease(module, azure):
 
     try:
         blob_properties = azure.get_blob_properties(container_name=container, blob_name=name)
-    except:
+    except WindowsAzureError as e:
         module.fail_json(msg="failed to get blob properties: %s" % str(e))
 
     changed = False

@@ -136,6 +136,7 @@ Storage Containers (azure_storage_container)
     get_container_acl
     set_container_acl
     lease_container
+    lease_blob - Done
 
 make_blob_url
 list_containers
@@ -160,7 +161,6 @@ get_blob_to_bytes
 get_blob_to_text
 get_blob_metadata
 set_blob_metadata
-lease_blob
 snapshot_blob
 copy_blob
 abort_copy_blob

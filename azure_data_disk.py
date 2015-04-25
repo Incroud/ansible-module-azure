@@ -3,9 +3,9 @@
 DOCUMENTATION = '''
 ---
 module: azure_data_disk
-short_description: create or terminate a data disk in azure
+short_description: create, attach or remove a data disk on a virtual machine
 description:
-     - Creates or deletes data disks. This module has a dependency on python-azure >= 0.7.1
+     - Creates, attaches and removes data disks from virtual machines. This module has a dependency on python-azure >= 0.7.1
 version_added: "1.9"
 options:
   service:
@@ -33,16 +33,16 @@ options:
       - the platform caching behavior for read/write efficiency
     required: true
     default: ReadOnly
-  media_link:
-    description:
-      - the location where the media for the disk is located
-    required: false
-    default: null
   source_media_link:
     description:
       - the location which is mounted when the virtual machine is created
     required: false
     default: ReadOnly
+  disk_name:
+    description:
+      - the name of an existing disk to be attached to the virtual machine
+    required: false
+    default: null
   label:
     description:
       - a label for the data disk (up to 100 characters)
@@ -51,6 +51,11 @@ options:
   size_gb:
     description:
       - the size of the disk (in Gb)
+    required: true
+    default: null
+  storage_account:
+    description:
+      - name of the storage account that owns the disk
     required: true
     default: null
   delete_vhd:
@@ -154,15 +159,15 @@ def _wait_for_completion(azure, promise, wait_timeout, msg):
 
     raise WindowsAzureError('Timed out waiting for async operation ' + msg + ' "' + str(promise.request_id) + '" to complete.')
 
-def create_data_disk(module, azure):
+def add_data_disk(module, azure):
     """
-    Create new data disk
+    Adds a new or existing data disk to a virtual machine
 
     module : AnsibleModule object
     azure: authenticated azure ServiceManagementService object
 
     Returns:
-        True if a new servce was created, false otherwise
+        True if a new data disk was attached, false otherwise
     """
     service = module.params.get('service')
     deployment = module.params.get('deployment')
@@ -172,10 +177,14 @@ def create_data_disk(module, azure):
     media_link = module.params.get('media_link')
     label = module.params.get('label')
     name = module.params.get('name')
+    disk_name = module.params.get('disk_name')
     size_gb = int(module.params.get('size_gb'))
+    storage_account = module.params.get('storage_account')
     source_media_link = module.params.get('source_media_link')
     wait = module.boolean(module.params.get('wait'))
     wait_timeout = int(module.params.get('wait_timeout'))
+
+    media_link = u'http://%s.blob.core.windows.net/vhds/%s.vhd' % (storage_account, name)
 
     # Check if a data disk is already attached to the deployment
     data_disk = None
@@ -192,7 +201,7 @@ def create_data_disk(module, azure):
         changed = True
         # Create the data disk if necessary
         try:
-            result = azure.add_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun, host_caching=host_caching, media_link=media_link, disk_label=label, disk_name=name, logical_disk_size_in_gb=size_gb, source_media_link=source_media_link)
+            result = azure.add_data_disk(service_name=service, deployment_name=deployment, role_name=role, lun=lun, host_caching=host_caching, media_link=media_link, disk_label=label, disk_name=disk_name, logical_disk_size_in_gb=size_gb, source_media_link=source_media_link)
             if (wait):
                 _wait_for_completion(azure, result, wait_timeout, "add_data_disk")
         except WindowsAzureError as e:
@@ -206,7 +215,7 @@ def create_data_disk(module, azure):
     except WindowsAzureError as e:
         module.fail_json(msg="failed to lookup the data disk information for %s, error was: %s" % (name, str(e)))
 
-def delete_data_disk(module, azure):
+def remove_data_disk(module, azure):
     """
     Deletes a data disk
 
@@ -270,10 +279,13 @@ def main():
         argument_spec=dict(
             service=dict(),
             deployment=dict(),
+            container=dict(),
+            storage_account=dict(),
             role=dict(),
             lun=dict(),
             host_caching=dict(choices=AZURE_HOST_CACHING, default='ReadOnly'),
             media_link=dict(),
+            disk_name=dict(),
             label=dict(),
             name=dict(),
             size_gb=dict(),
@@ -297,7 +309,7 @@ def main():
         azure = ServiceManagementService(subscription_id, management_cert_path)
 
     if module.params.get('state') == 'absent':
-        (changed, data_disk) = delete_data_disk(module, azure)
+        (changed, data_disk) = remove_data_disk(module, azure)
 
     elif module.params.get('state') == 'present':
         # Changed is always set to true when provisioning new instances
@@ -305,7 +317,9 @@ def main():
             module.fail_json(msg='service parameter is required for data disk')
         if not module.params.get('deployment'):
             module.fail_json(msg='deployment parameter is required for data disk')
-        (changed, data_disk) = create_data_disk(module, azure)
+        if not module.params.get('disk_name') and not module.params.get('name'):
+            module.fail_json(msg='disk_name or name is required for data disk')
+        (changed, data_disk) = add_data_disk(module, azure)
 
     module.exit_json(changed=changed, data_disk=json.loads(json.dumps(data_disk, default=lambda o: o.__dict__)))
 

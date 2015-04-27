@@ -20,6 +20,11 @@ options:
       - the azure location to use (e.g. 'East US')
     required: true
     default: null
+  affinity_group:
+    description:
+      - the name of an existing affinity group to which the service will be added (cannot be used with location)
+    required: true
+    default: null
   subscription_id:
     description:
       - azure subscription id. Overrides the AZURE_SUBSCRIPTION_ID environement variable.
@@ -248,6 +253,7 @@ def create_virtual_machine(module, azure):
     user = module.params.get('user')
     password = module.params.get('password')
     location = module.params.get('location')
+    affinity_group = module.params.get('affinity_group')
     role_size = module.params.get('role_size')
     storage_account = module.params.get('storage_account')
     image = module.params.get('image')
@@ -272,7 +278,7 @@ def create_virtual_machine(module, azure):
     else:
         # Create cloud service if necessary
         try:
-            result = azure.create_hosted_service(service_name=name, label=name, location=location)
+            result = azure.create_hosted_service(service_name=name, label=name, location=location, affinity_group=affinity_group)
             _wait_for_completion(azure, result, wait_timeout, "create_hosted_service")
         except WindowsAzureError as e:
             module.fail_json(msg="failed to create the new service name: %s" % str(e))
@@ -427,6 +433,7 @@ def main():
             name=dict(),
             hostname=dict(),
             location=dict(choices=AZURE_LOCATIONS),
+            affinity_group=dict(),
             role_size=dict(choices=AZURE_ROLE_SIZES),
             subscription_id=dict(no_log=True),
             storage_account=dict(),
@@ -467,8 +474,8 @@ def main():
             module.fail_json(msg='user parameter is required for new instance')
         if not module.params.get('password') and not module.params.get('ssh_cert_path'):
             module.fail_json(msg='password or ssh_cert_path is required for new instance')
-        if not module.params.get('location'):
-            module.fail_json(msg='location parameter is required for new instance')
+        if not module.params.get('location') and not module.params.get('affinity_group'):
+            module.fail_json(msg='location or affinity_group parameter is required for new instance')
         if not module.params.get('storage_account'):
             module.fail_json(msg='storage_account parameter is required for new instance')
         (changed, public_dns_name, deployment) = create_virtual_machine(module, azure)

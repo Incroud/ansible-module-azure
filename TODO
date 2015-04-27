@@ -55,11 +55,11 @@ Virtual Networks
 * Currently, there is not support in the Azure Python SDK for virtual networks
 * See https://github.com/Azure/azure-sdk-for-python/issues/155
 
-Affinity Groups
-*get_affinity_group_properties
-*create_affinity_group
-*delete_affinity_group
-*update_affinity_group
+Affinity Groups (azure_affinity_group)
+get_affinity_group_properties
+create_affinity_group
+delete_affinity_group
+update_affinity_group
 
 Storage Accounts (azure_storage_account)
 *get_storage_account_keys

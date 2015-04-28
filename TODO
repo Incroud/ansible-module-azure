@@ -136,21 +136,27 @@ Storage Containers (azure_storage_container)
     get_container_acl
     set_container_acl
     lease_container
-    lease_blob - Done
 
-make_blob_url
-list_containers
-get_container_metadata
-list_blobs
+Blob Leases (azure_blob_lease)
+    lease_blob - Done
+    get_blob_properties
+
+Blobs (azure_blob)
+    make_blob_url
+    set_blob_properties
+    put_blob
+    put_block_blob_from_path
+    put_block_blob_from_file
+    put_block_blob_from_bytes
+    put_block_blob_from_text
+    snapshot_blob
+    copy_blob
+    abort_copy_blob
+    delete_blob
+    set_blob_metadata
+
 set_blob_service_properties
 get_blob_service_properties
-get_blob_properties
-set_blob_properties
-put_blob
-put_block_blob_from_path
-put_block_blob_from_file
-put_block_blob_from_bytes
-put_block_blob_from_text
 put_page_blob_from_path
 put_page_blob_from_file
 put_page_blob_from_bytes
@@ -160,13 +166,13 @@ get_blob_to_file
 get_blob_to_bytes
 get_blob_to_text
 get_blob_metadata
-set_blob_metadata
-snapshot_blob
-copy_blob
-abort_copy_blob
-delete_blob
 put_block
 put_block_list
 get_block_list
 put_page
 get_page_ranges
+
+Not Needed
+list_containers
+list_blobs
+

@@ -63,9 +63,7 @@ import sys
 import json
 
 try:
-    import azure as windows_azure
-
-    from azure import WindowsAzureError, WindowsAzureMissingResourceError
+    from azure.common import AzureException
     from azure.storage import (CloudStorageAccount)
 except ImportError as a:
     print "failed=True msg='azure required for this module': %s" % (a)
@@ -98,7 +96,7 @@ def get_blob(module, azure):
         try:
             azure.get_blob_to_path(container_name=container, blob_name=name, file_path=dest, snapshot=snapshot, x_ms_lease_id=lease_id)
             changed = module.md5(dest) != original_md5
-        except WindowsAzureError as e:
+        except AzureException as e:
             module.fail_json(msg="failed to lease blob: %s" % str(e))
 
     return (changed)
